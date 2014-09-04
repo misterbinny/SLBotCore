@@ -1,0 +1,139 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using OpenMetaverse;
+using OpenMetaverse.Imaging;
+
+
+namespace SecondLifeBotTemplate
+{
+    class BotClass
+    {
+         
+         public string whatWasSaid;
+         public string whoSaidIt;
+         public string myName = "";
+
+        public static GridClient BotClient = new GridClient();
+        
+        //Enter your Avatar first name, last name, and password here
+        private static string first_name = "CriticalThinkingFundamentals";
+        private static string last_name = "Resident";
+        private static string password = "thestateofthings";
+
+        /*  Constructor*/
+        public BotClass()
+        {
+          
+
+        }
+
+        public void loginToSl()
+        {
+            //Subscribe to these events when we log in:
+            BotClient.Network.LoginProgress += new EventHandler<LoginProgressEventArgs>(Network_LoginProgress);
+
+
+
+            if(BotClient.Network.Login(first_name, last_name, password,"0","1.0"))
+            {
+                Console.WriteLine("I logged in ok");
+                BotClient.Self.ChatFromSimulator += new EventHandler<ChatEventArgs>(Self_ChatFromSimulator);
+
+            }
+            else
+            {
+                Console.WriteLine("I couldn't log in because" + BotClient.Network.LoginMessage);
+                Console.WriteLine("press enter to close");
+                Console.ReadLine(); //wait here
+            }
+        } //End of loginToSl()
+
+        static void Network_LoginProgress(object sender, LoginProgressEventArgs e)
+        {
+            if(e.Status == LoginStatus.Success)
+            {
+                Console.WriteLine("I am connected to the simulator");
+            }
+        }
+
+        public void Self_ChatFromSimulator(object sender, ChatEventArgs e)
+        {
+
+
+            if(e.Type != ChatType.Normal || e.SourceType != ChatSourceType.Agent || e.FromName == BotClient.Self.Name)
+            {
+                return;
+            }
+
+            if( e.Message == "Noise")
+            {
+                fsm.ProcessEvent(stateMachine.Events.Noise);
+            }
+
+            if (e.Message == "Timeout")
+            {
+                fsm.ProcessEvent(stateMachine.Events.Timeout);
+            }
+
+            whatWasSaid = e.Message;
+            whoSaidIt = e.FromName;
+
+        
+  
+
+
+                typeDelay(e.Message);
+     
+                sayThis(newmessage);
+
+
+               
+           
+        }
+
+  
+
+        public void sayThis(string message)
+        {
+            BotClient.Self.Chat(message, 0, ChatType.Normal);
+        }
+
+        public void logoutOfSl()
+        {
+            BotClient.Network.Logout();
+        }
+
+        public void teleport(string region, Vector3 position)
+        {
+            BotClient.Self.Teleport(region, position);
+        }
+
+        private void typeDelay(string message)
+        {
+            int counter = 0;
+            List<string> words = new List<string>();
+            int delay = 0;
+
+            UUID typing = new UUID("c541c47f-e0c0-058b-ad1a-d6ae3a4584d9");
+            BotClient.Self.AnimationStart(typing, true);
+
+            string[] parsedString = message.Split(' ');
+
+            foreach(string s in parsedString)
+            {
+                counter++;
+            }
+
+            delay = counter * 750;
+
+            System.Threading.Thread.Sleep(delay);
+
+            BotClient.Self.AnimationStop(typing, true);
+
+        }
+
+    }
+}
